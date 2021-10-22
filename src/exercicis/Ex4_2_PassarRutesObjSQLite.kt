@@ -15,7 +15,7 @@ fun main(){
     val conexion = DriverManager.getConnection(url)
     System.out.println("Connexió completada")
 
-    //val statement = conexion.createStatement()
+    val sentencia = conexion.createStatement()
 
     val fileIn = ObjectInputStream(FileInputStream("Rutes.obj"))
     try {
@@ -25,14 +25,14 @@ fun main(){
             val nomRuta = ruta.nom
             val desnivellRuta = ruta.desnivell
             val desnivellAcumulat = ruta.desnivellAcumulat
-            println("INSERT INTO Rutes VALUES ($numRuta, $nomRuta, $desnivellRuta, $desnivellAcumulat)")
+            sentencia.executeUpdate("INSERT INTO Rutes VALUES($numRuta,'$nomRuta',$desnivellRuta,$desnivellAcumulat)")
 
             var numPunt = 1
             for (punt in ruta.llistaDePunts){
                 val nomPunt = punt.nom
                 val latitud = punt.coord.latitud
                 val longitud = punt.coord.longitud
-                println("INSERT INTO Punts VALUES($numRuta,$numPunt,$nomPunt,$latitud,$longitud)")
+                sentencia.executeUpdate("INSERT INTO Punts VALUES($numRuta,$numPunt,'$nomPunt',$latitud,$longitud)")
                 numPunt++
             }
             numRuta++
