@@ -63,7 +63,11 @@ class Finestra : JFrame() {
             area.text = ""
 
             val sentenciaPuntos = conexion.createStatement()
+
+            /*
             println("SELECT nom_p,latitud,longitud FROM Punts WHERE num_ruta = $ruta ")
+            Mostrar por pantalla la consulta para comprobar que es correcta
+             */
 
             //Seleccionamos * de la tabla puntos cuya ruta sea combo.selecteIndex+1 (ruta)
             val rsConsultaPuntos = sentenciaPuntos.executeQuery("SELECT * FROM Punts WHERE num_r = $ruta ")
