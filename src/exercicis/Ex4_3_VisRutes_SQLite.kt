@@ -30,43 +30,57 @@ class Finestra : JFrame() {
         add(panell1, BorderLayout.NORTH)
         add(panell2, BorderLayout.CENTER)
 
-        val llistaRutes = arrayListOf<String>()
-        // Sentències per a omplir l'ArrayList amb el nom de les rutes
-        val consulta = "SELECT nom_r FROM Rutes"
-        val resultadoNombres = sentencia.executeQuery(consulta)
-        while (resultadoNombres.next()){
-            llistaRutes.add(resultadoNombres.getString(1))
-        }
 
+        // Sentències per a omplir l'ArrayList amb el nom de les rutes
+        // Añadimos nombres de rutas al combo
+        val llistaRutes = arrayListOf<String>()
+        val consultaNomRutes = "SELECT nom_r FROM Rutes"
+        val rsNomRutes = sentencia.executeQuery(consultaNomRutes)
+        while (rsNomRutes.next()) {
+            llistaRutes.add(rsNomRutes.getString(1))
+        }
+        rsNomRutes.close()
         val combo = JComboBox<String>(llistaRutes.toTypedArray())
+
         panell1.add(combo)
         val eixir = JButton("Eixir")
         panell1.add(eixir)
         val area = JTextArea()
-        panell2.add(JLabel("Llista de punts de la ruta:"),BorderLayout.NORTH)
-        panell2.add(area,BorderLayout.CENTER)
+        panell2.add(JLabel("Llista de punts de la ruta:"), BorderLayout.NORTH)
+        panell2.add(area, BorderLayout.CENTER)
 
 
         combo.addActionListener() {
             // Sentèncis quan s'ha seleccionat un element del JComboBox
             // Han de consistir en omplir el JTextArea
-            for (i in 0 until llistaRutes.size)     {
-                if (combo.selectedIndex == i){
-                    area.text = ""
-                    val sentenciaPuntos = conexion.createStatement()
-                    val consultaPuntos = sentenciaPuntos.executeQuery("SELECT 'nom_p',latitud,longitud FROM Punts")
-                    val resultadoConsulta = consultaPuntos
-                    //hay que saltar una fila
-                    area.text = resultadoConsulta.getString(1)
-                }
-            }
 
+            /*
+            Obtenemos el numero de la ruta seleccionada,
+            la emplearemos como parametro para la consulta
+             */
+            val ruta = combo.selectedIndex+1
+
+            area.text = ""
+
+            val sentenciaPuntos = conexion.createStatement()
+            println("SELECT nom_p,latitud,longitud FROM Punts WHERE num_ruta = $ruta ")
+
+            //Seleccionamos * de la tabla puntos cuya ruta sea combo.selecteIndex+1 (ruta)
+            val rsConsultaPuntos = sentenciaPuntos.executeQuery("SELECT * FROM Punts WHERE num_r = $ruta ")
+
+            //la primera columna es 1
+            while (rsConsultaPuntos.next()) {
+                area.append(rsConsultaPuntos.getString(3))
+                area.append(" (${rsConsultaPuntos.getDouble(4)}, ${rsConsultaPuntos.getDouble(5)})\n")
+            }
+            rsConsultaPuntos.close()
         }
 
-        eixir.addActionListener(){
+        eixir.addActionListener() {
             // Sentències per a tancar la connexió i eixir
             conexion.close()
             println("Conexion finalizada.")
+            System.exit(0)
         }
     }
 }
