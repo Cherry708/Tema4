@@ -71,6 +71,7 @@ class Finestra : JFrame() {
 
             //Seleccionamos * de la tabla puntos cuya ruta sea combo.selecteIndex+1 (ruta)
             val rsConsultaPuntos = sentenciaPuntos.executeQuery("SELECT * FROM Punts WHERE num_r = $ruta ")
+            sentenciaPuntos.close()
 
             //la primera columna es 1
             while (rsConsultaPuntos.next()) {
