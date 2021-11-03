@@ -21,8 +21,11 @@ fun main(args: Array<String>) {
     //Añadimos una tercera ruta
     gRutes.inserir(Ruta("Pelegrins de Les Useres",896,1738,punts))
 
-    //Eliminamos una cuarta ruta
-    gRutes.esborrar(4)
+    /*
+    IMPORTANTE:
+    Siempre eliminamos la ruta cuyo num_r = 6
+     */
+    gRutes.esborrar(6)
 
     // Llistat de totes les rutes
     println("--- Llistat ---")

@@ -58,6 +58,8 @@ class GestionarRutesBD {
         val statement = conexion.createStatement()
         val inserir = "INSERT INTO Rutes VALUES (${rsNumRuta.getInt(1)+1},'${ruta.nom}',${ruta.desnivell},${ruta.desnivellAcumulat})"
 
+        rsNumRuta.close()
+        statement0.close()
         statement.executeUpdate(inserir)
         statement.close()
     }
@@ -102,6 +104,9 @@ class GestionarRutesBD {
         Los statements son conexiones y se deben cerrar, pero se
         deben cerrar despues de recoger los datos. Si no, Excepcion ResultSet closed
          */
+        rsRuta.close()
+        rsPuntos.close()
+
         statement0.close()
         statement1.close()
 
