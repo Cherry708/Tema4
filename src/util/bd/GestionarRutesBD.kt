@@ -172,5 +172,47 @@ class GestionarRutesBD {
         statement1.close()
     }
 
+    fun guardar(ruta: Ruta){
+
+        val statement0 = conexion.createStatement()
+        val consulta0 = "SELECT * FROM Rutes"
+        val rsRutes= statement0.executeQuery(consulta0)
+
+        //Si el nombre de la ruta introducida existe
+        if (rsRutes.getString(2).equals(ruta.nom)){
+
+            val statement1 = conexion.createStatement()
+            val consulta1 = "UPDATE Rutes " +
+                    "SET desn = ${ruta.desnivell}, desn_ac = ${ruta.desnivellAcumulat} " +
+                    "WHERE nom_r = ${ruta.nom}"
+            statement1.executeUpdate(consulta1)
+            statement1.close()
+
+            /*
+            Eliminamos los puntos cuya ruta coincida con la introducida
+             */
+            val statement2 = conexion.prepareStatement("DELETE FROM Punts WHERE num_r = ?")
+            statement2.setInt(1,rsRutes.getInt(1))
+            statement2.close()
+
+            /*
+            Introducimos los puntos de la ruta
+             */
+            val statement3 = conexion.createStatement()
+            for (punt in ruta.llistaDePunts) {
+                val consulta2 = "INSERT INTO Punts " +
+                        "VALUES (${rsRutes.getInt(1)},'${punt.nom}', ${punt.coord.latitud}, ${punt.coord.longitud})"
+                statement3.executeUpdate(consulta2)
+            }
+            rsRutes.close()
+            statement3.close()
+
+        } else {
+
+            val statement4 = conexion.createStatement()
+
+        }
+    }
+
 
 }
