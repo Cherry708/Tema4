@@ -7,10 +7,10 @@ import java.sql.DriverManager
 
 
 class GestionarRutesBD {
-    var conexion = DriverManager.getConnection(null)
+    val conexion = DriverManager.getConnection("jdbc:sqlite:Rutes.sqlite")
 
     init {
-        conexion = DriverManager.getConnection("jdbc:sqlite:Empleats.sqlite")
+        val conexion = DriverManager.getConnection("jdbc:sqlite:Empleats.sqlite")
     }
 
     /**
@@ -34,14 +34,13 @@ class GestionarRutesBD {
         val statement0 = conexion.createStatement()
         val consulta = "SELECT MAX(num_r) FROM Rutes"
         val rsNumRuta = statement0.executeQuery(consulta)
-        statement0.close()
 
         //Inserir
         val statement = conexion.createStatement()
-        val inserir = "INSERT INTO Rutes VALUES ($rsNumRuta,'${ruta.nom}',${ruta.desnivell},${ruta.desnivellAcumulat})"
-        println(inserir)
-        //statement.executeUpdate(inserir)
-        //statement.close()
+        val inserir = "INSERT INTO Rutes VALUES (${rsNumRuta.getInt(1)+1},'${ruta.nom}',${ruta.desnivell},${ruta.desnivellAcumulat})"
+
+        statement.executeUpdate(inserir)
+        statement.close()
     }
 
     /**
@@ -51,12 +50,12 @@ class GestionarRutesBD {
         val statement0 = conexion.createStatement()
         val consultaRuta = "SELECT * FROM Rutes WHERE num_r = $i"
         val rsRuta = statement0.executeQuery(consultaRuta)
-        statement0.close()
+        //statement0.close()
 
         val statement1 = conexion.createStatement()
         val consultaPunts = "SELECT * FROM Punts WHERE num_r = $i"
         val rsPuntos = statement1.executeQuery(consultaPunts)
-        statement1.close()
+       // statement1.close()
 
         val llistaDePunts = ArrayList<PuntGeo>()
         /*
@@ -80,14 +79,51 @@ class GestionarRutesBD {
         val desnivell = rsRuta.getInt(3)
         val desnivellAcumulat = rsRuta.getInt(4)
 
+        /*
+        Los statements son conexiones y se deben cerrar, pero se
+        deben cerrar despues de recoger los datos. Si no Excepcion ResultSet closed
+         */
+        statement0.close()
+        statement1.close()
+
         return Ruta(nom, desnivell, desnivellAcumulat, llistaDePunts)
     }
 
     /**
      * torna un ArrayList de Ruta amb totes les rutes de la Base de Dades.
      */
-    fun llistat()/*ArrayList<Ruta>*/{
+    fun llistat(): ArrayList<Ruta>{
+        val statement0 = conexion.createStatement()
+        val consultaRuta = "SELECT * FROM Rutes"
+        val rsRuta = statement0.executeQuery(consultaRuta)
+        statement0.close()
 
+        val llistaDeRutes = ArrayList<Ruta>()
+        val llistaDePunts = ArrayList<PuntGeo>()
+
+        while (rsRuta.next()){
+            val nom = rsRuta.getString(2)
+            val desnivell = rsRuta.getInt(3)
+            val desnivellAcumulat = rsRuta.getInt(4)
+
+            val statement1 = conexion.prepareStatement("SELECT * FROM Punts WHERE num_r = ?")
+            statement1.setInt(1,rsRuta.getInt(1))
+            val rsPuntos = statement1.executeQuery()
+
+            while (rsPuntos.next()){
+                val nomPunt = rsPuntos.getString(3)
+                val latitud = rsPuntos.getDouble(4)
+                val longitud = rsPuntos.getDouble(5)
+                val coordenades = Coordenades(latitud, longitud)
+
+                val punto = PuntGeo(nomPunt,coordenades)
+                llistaDePunts.add(punto)
+            }
+            llistaDeRutes.add(Ruta(nom, desnivell, desnivellAcumulat, llistaDePunts))
+            statement1.close()
+        }
+
+        return llistaDeRutes
     }
 
     fun esborrar(i: Int){

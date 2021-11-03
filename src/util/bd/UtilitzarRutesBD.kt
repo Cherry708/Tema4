@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
     // Buscar una ruta determinada
     val r2 = gRutes.buscar(2)
     if (r2 != null)
-        r2.mostrarRuta()
+        println(r2.mostrarRuta())
 
     gRutes.close()
 }
