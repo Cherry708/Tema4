@@ -7,11 +7,30 @@ import java.sql.DriverManager
 
 
 class GestionarRutesBD {
-    val conexion = DriverManager.getConnection("jdbc:sqlite:Rutes.sqlite")
+    var conexion = DriverManager.getConnection("jdbc:sqlite:Rutes.sqlite")
+    val statement0 = conexion.createStatement()
 
     init {
-        val conexion = DriverManager.getConnection("jdbc:sqlite:Empleats.sqlite")
+        val sentenciaRutas = "CREATE TABLE IF NOT EXISTS Rutes(" +
+                "num_r INTEGER PRIMARY KEY," +
+                "nom_r TEXT, " +
+                "desn INTEGER , " +
+                "desn_ac INTEGER " +
+                ")"
+        val sentenciaPunts = "CREATE TABLE IF NOT EXISTS Punts("+
+                "num_r INTEGER,"+
+                "num_p INTEGER,"+
+                "nom_p TEXT,"+
+                "latitud REAL,"+
+                "longitud REAL,"+
+                "PRIMARY KEY (num_r,num_p),"+
+                "FOREIGN KEY (num_r) REFERENCES Rutes(num_r))"
+
+        statement0.executeUpdate(sentenciaRutas)
+        statement0.executeUpdate(sentenciaPunts)
+        statement0.close()
     }
+
 
     /**
      * tancarà la connexió.
@@ -81,7 +100,7 @@ class GestionarRutesBD {
 
         /*
         Los statements son conexiones y se deben cerrar, pero se
-        deben cerrar despues de recoger los datos. Si no Excepcion ResultSet closed
+        deben cerrar despues de recoger los datos. Si no, Excepcion ResultSet closed
          */
         statement0.close()
         statement1.close()
@@ -90,13 +109,12 @@ class GestionarRutesBD {
     }
 
     /**
-     * torna un ArrayList de Ruta amb totes les rutes de la Base de Dades.
+     * Torna un ArrayList de Ruta amb totes les rutes de la Base de Dades.
      */
     fun llistat(): ArrayList<Ruta>{
         val statement0 = conexion.createStatement()
         val consultaRuta = "SELECT * FROM Rutes"
         val rsRuta = statement0.executeQuery(consultaRuta)
-        statement0.close()
 
         val llistaDeRutes = ArrayList<Ruta>()
         val llistaDePunts = ArrayList<PuntGeo>()
@@ -106,6 +124,11 @@ class GestionarRutesBD {
             val desnivell = rsRuta.getInt(3)
             val desnivellAcumulat = rsRuta.getInt(4)
 
+            /*
+            Declaramos un prepareStatement con una incognita, esta incognita se
+            resuelve con un setter que recoge el numero de la ruta sobre la que
+            queremos trabajar.
+             */
             val statement1 = conexion.prepareStatement("SELECT * FROM Punts WHERE num_r = ?")
             statement1.setInt(1,rsRuta.getInt(1))
             val rsPuntos = statement1.executeQuery()
@@ -120,14 +143,28 @@ class GestionarRutesBD {
                 llistaDePunts.add(punto)
             }
             llistaDeRutes.add(Ruta(nom, desnivell, desnivellAcumulat, llistaDePunts))
+
+            rsPuntos.close()
             statement1.close()
         }
+        rsRuta.close()
+        statement0.close()
 
         return llistaDeRutes
     }
 
+    /**
+     * Esborra la ruta amb el número passat com a paràmetre
+     * (recordeu que els punts de la ruta també s'han d'esborrar)
+     */
     fun esborrar(i: Int){
+        val statement0 = conexion.createStatement()
+        val statement1 = conexion.createStatement()
+        statement0.executeUpdate("DELETE FROM Rutes WHERE num_r = $i")
+        statement0.close()
 
+        statement1.executeUpdate("DELETE FROM Punts WHERE num_r = $i")
+        statement1.close()
     }
 
 

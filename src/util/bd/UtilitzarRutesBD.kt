@@ -18,13 +18,19 @@ fun main(args: Array<String>) {
         punts.add(PuntGeo(noms[i], Coordenades(latituds[i], longituds[i])))
     }
 
+    //Añadimos una tercera ruta
     gRutes.inserir(Ruta("Pelegrins de Les Useres",896,1738,punts))
 
+    //Eliminamos una cuarta ruta
+    gRutes.esborrar(4)
+
     // Llistat de totes les rutes
+    println("--- Llistat ---")
     for (r in gRutes.llistat())
-        r?.mostrarRuta()
+        println(r?.mostrarRuta())
 
     // Buscar una ruta determinada
+    println("--- Busqueda ruta ---")
     val r2 = gRutes.buscar(2)
     if (r2 != null)
         println(r2.mostrarRuta())
