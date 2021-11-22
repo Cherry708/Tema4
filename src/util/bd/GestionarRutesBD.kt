@@ -50,18 +50,29 @@ class GestionarRutesBD {
          */
 
         //Los statements son conexiones, se han de cerrar
-        val statement0 = conexion.createStatement()
+        val statementConsulta = conexion.createStatement()
         val consulta = "SELECT MAX(num_r) FROM Rutes"
-        val rsNumRuta = statement0.executeQuery(consulta)
+        val rsNumRuta = statementConsulta.executeQuery(consulta)
 
         //Inserir
-        val statement = conexion.createStatement()
-        val inserir = "INSERT INTO Rutes VALUES (${rsNumRuta.getInt(1)+1},'${ruta.nom}',${ruta.desnivell},${ruta.desnivellAcumulat})"
+        val statementRuta = conexion.createStatement()
+        val inserirRuta = "INSERT INTO Rutes VALUES (${rsNumRuta.getInt(1)+1},'${ruta.nom}',${ruta.desnivell},${ruta.desnivellAcumulat})"
 
+
+        statementRuta.executeUpdate(inserirRuta)
+        statementRuta.close()
+
+        //Insertamos todos los puntos de la ruta
+        var numPunt = 0
+        for (punt in ruta.llistaDePunts){
+            val statementPunt = conexion.createStatement()
+            val inserirPunt = "INSERT INTO Punts VALUES" +
+                    "(${rsNumRuta.getInt(1)+1}, ${++numPunt}, '${punt.nom}', ${punt.coord.latitud}, ${punt.coord.longitud})"
+            statementPunt.executeUpdate(inserirPunt)
+            statementPunt.close()
+        }
+        statementConsulta.close()
         rsNumRuta.close()
-        statement0.close()
-        statement.executeUpdate(inserir)
-        statement.close()
     }
 
     /**
@@ -76,7 +87,7 @@ class GestionarRutesBD {
         val statement1 = conexion.createStatement()
         val consultaPunts = "SELECT * FROM Punts WHERE num_r = $i"
         val rsPuntos = statement1.executeQuery(consultaPunts)
-       // statement1.close()
+        // statement1.close()
 
         val llistaDePunts = ArrayList<PuntGeo>()
         /*
@@ -122,7 +133,6 @@ class GestionarRutesBD {
         val rsRuta = statement0.executeQuery(consultaRuta)
 
         val llistaDeRutes = ArrayList<Ruta>()
-        val llistaDePunts = ArrayList<PuntGeo>()
 
         while (rsRuta.next()){
             val nom = rsRuta.getString(2)
@@ -138,6 +148,7 @@ class GestionarRutesBD {
             statement1.setInt(1,rsRuta.getInt(1))
             val rsPuntos = statement1.executeQuery()
 
+            val llistaDePunts = ArrayList<PuntGeo>()
             while (rsPuntos.next()){
                 val nomPunt = rsPuntos.getString(3)
                 val latitud = rsPuntos.getDouble(4)
@@ -172,10 +183,13 @@ class GestionarRutesBD {
         statement1.close()
     }
 
+    /*
+    No funciona correctamente, actualiza los campos de una que no es la introducida
+     */
     fun guardar(ruta: Ruta){
 
         val statement0 = conexion.createStatement()
-        val consulta0 = "SELECT * FROM Rutes"
+        val consulta0 = "SELECT * FROM Rutes WHERE nom_r = '${ruta.nom}'"
         val rsRutes= statement0.executeQuery(consulta0)
 
         //Si el nombre de la ruta introducida existe
@@ -184,33 +198,47 @@ class GestionarRutesBD {
             val statement1 = conexion.createStatement()
             val consulta1 = "UPDATE Rutes " +
                     "SET desn = ${ruta.desnivell}, desn_ac = ${ruta.desnivellAcumulat} " +
-                    "WHERE nom_r = ${ruta.nom}"
+                    "WHERE nom_r = '${ruta.nom}'"
             statement1.executeUpdate(consulta1)
             statement1.close()
 
             /*
             Eliminamos los puntos cuya ruta coincida con la introducida
              */
-            val statement2 = conexion.prepareStatement("DELETE FROM Punts WHERE num_r = ?")
-            statement2.setInt(1,rsRutes.getInt(1))
+            val statement2 = conexion.createStatement()
+            statement2.executeUpdate("DELETE FROM Punts WHERE num_r = ${rsRutes.getInt(1)}")
             statement2.close()
 
             /*
             Introducimos los puntos de la ruta
              */
+            /*
             val statement3 = conexion.createStatement()
+            var numPunt = 0
+            val numR = rsRutes.getInt(1)
             for (punt in ruta.llistaDePunts) {
-                val consulta2 = "INSERT INTO Punts " +
-                        "VALUES (${rsRutes.getInt(1)},'${punt.nom}', ${punt.coord.latitud}, ${punt.coord.longitud})"
+                val consulta2 = "UPDATE Punts SET " +
+                        "num_p = ${++numPunt}, nom_p = '${punt.nom}', " +
+                        "latitud = ${punt.coord.latitud}, longitud = ${punt.coord.longitud} " +
+                        "WHERE num_r = $numR"
                 statement3.executeUpdate(consulta2)
             }
             rsRutes.close()
             statement3.close()
+            */
+            //Insertamos todos los puntos de la ruta
+            var numPunt = 0
+            for (punt in ruta.llistaDePunts){
+                val statementPunt = conexion.createStatement()
+                val inserirPunt = "INSERT INTO Punts VALUES" +
+                        "(${rsRutes.getInt(1)}, ${++numPunt}, '${punt.nom}', ${punt.coord.latitud}, ${punt.coord.longitud})"
+                statementPunt.executeUpdate(inserirPunt)
+                statementPunt.close()
+            }
+            rsRutes.close()
 
         } else {
-
-            val statement4 = conexion.createStatement()
-
+            inserir(ruta)
         }
     }
 
