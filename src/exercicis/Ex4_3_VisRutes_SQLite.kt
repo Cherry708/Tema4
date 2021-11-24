@@ -58,20 +58,20 @@ class Finestra : JFrame() {
             Obtenemos el numero de la ruta seleccionada,
             la emplearemos como parametro para la consulta
              */
-            val ruta = combo.selectedIndex+1
+            val nomRuta = combo.selectedItem as String
+
 
             area.text = ""
 
-            val sentenciaPuntos = conexion.createStatement()
+            val sentenciaPuntos = conexion.prepareStatement("SELECT * FROM Punts " +
+                    "JOIN Rutes ON Rutes.num_r = Punts.num_r WHERE Rutes.nom_r = ?")
 
-            /*
-            println("SELECT nom_p,latitud,longitud FROM Punts WHERE num_ruta = $ruta ")
-            Mostrar por pantalla la consulta para comprobar que es correcta
-             */
 
-            //Seleccionamos * de la tabla puntos cuya ruta sea combo.selecteIndex+1 (ruta)
-            val rsConsultaPuntos = sentenciaPuntos.executeQuery("SELECT * FROM Punts WHERE num_r = $ruta ")
-            sentenciaPuntos.close()
+            //println("SELECT nom_p,latitud,longitud FROM Punts WHERE num_ruta = $ruta ")
+            //Mostrar por pantalla la consulta para comprobar que es correcta
+
+            sentenciaPuntos.setString(1, nomRuta)
+            val rsConsultaPuntos = sentenciaPuntos.executeQuery()
 
             //la primera columna es 1
             while (rsConsultaPuntos.next()) {
@@ -79,6 +79,8 @@ class Finestra : JFrame() {
                 area.append(" (${rsConsultaPuntos.getDouble(4)}, ${rsConsultaPuntos.getDouble(5)})\n")
             }
             rsConsultaPuntos.close()
+            sentenciaPuntos.close()
+
         }
 
         eixir.addActionListener() {
